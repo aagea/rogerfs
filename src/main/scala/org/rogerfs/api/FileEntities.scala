@@ -8,7 +8,7 @@ case class Partition(file:File, partition: UUID)
 
 case class Block(partition:Partition, block: UUID)
 
-case class SubBlock(block:UUID, subBlock: UUID, data: Array[Byte])
+case class SubBlock(block:Block, subBlock: UUID, data: Array[Byte])
 
 object Path {
   private val PATH_REG_EXP = """^(?:\/[A-Za-z0-9_\-\.]+)+\/?$"""

@@ -1,5 +1,7 @@
 package org.rogerfs.api
 
+import org.rogerfs.utils.UUIDGen
+
 
 object FileSystem{
   def mount(store:IStore):IFileSystem={
@@ -21,7 +23,11 @@ object FileSystem{
       file
     }
 
-
+    def WriteFile(file:File):RogerOutputStream = {
+      val partition:Partition=new Partition(file,UUIDGen.getTimeUUID)
+      store.createPartition(partition)
+      new RogerOutputStream(store,partition)
+    }
 
   }
 
