@@ -1,6 +1,5 @@
 package org.rogerfs.api
 
-import org.rogerfs.store.IStore
 
 object FileSystem{
   def mount(store:IStore):IFileSystem={
@@ -8,10 +7,22 @@ object FileSystem{
   }
 
   private class FileSystem(store:IStore) extends IFileSystem{
-    def createDirectory(path:String){
 
+    def createFile(path: String): File = {
+      createFile(Path.getPath(path))
     }
-    def createFile()
+
+    def createFile(path:IPath): File = {
+      createFile(File(path))
+    }
+
+    def createFile(file:File): File = {
+      store.createFile(file)
+      file
+    }
+
+
+
   }
 
 }
