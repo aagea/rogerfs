@@ -4,11 +4,11 @@ import java.util.UUID
 
 case class File(path:IPath)
 
-case class Partition(file:File, partition: UUID)
+case class Partition(file:File, uuid: UUID)
 
-case class Block(partition:Partition, block: UUID)
+case class Block(partition:Partition, uuid: UUID)
 
-case class SubBlock(block:Block, subBlock: UUID, data: Array[Byte])
+case class SubBlock(block:Block, uuid: UUID, data: Array[Byte])
 
 object Path {
   private val PATH_REG_EXP = """^(?:\/[A-Za-z0-9_\-\.]+)+\/?$"""
@@ -45,6 +45,8 @@ object Path {
     override def getParent: String = parent
 
     override def getPath: String = path
+
+    override def toString: String = path
   }
 
 }
