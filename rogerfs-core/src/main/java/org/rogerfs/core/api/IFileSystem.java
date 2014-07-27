@@ -14,7 +14,17 @@
  * limitations under the License.
  */
 
-package org.rogerfs.api;
+package org.rogerfs.core.api;
+
+import org.rogerfs.common.store.File;
+import org.rogerfs.common.store.PathBase;
+import org.rogerfs.common.store.StoreException;
 
 public interface IFileSystem {
+
+  public File createFile(String path) throws StoreException;
+  public File createFile(PathBase path) throws StoreException;
+  public File createFile(File file) throws StoreException;
+
+  public RogerOutputStream writeFile(File file) throws StoreException;
 }

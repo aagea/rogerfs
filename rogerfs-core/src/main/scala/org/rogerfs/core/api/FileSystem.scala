@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.rogerfs.api
+package org.rogerfs.core.api
 
 import org.rogerfs.common.store._
 import org.rogerfs.common.utils.UUIDGen
@@ -40,7 +40,7 @@ object FileSystem{
       file
     }
 
-    def WriteFile(file:File):RogerOutputStream = {
+    def writeFile(file:File):RogerOutputStream = {
       val partition:Partition=new Partition(file,UUIDGen.getTimeUUID)
       store.createPartition(partition)
       new RogerOutputStream(store,partition)

@@ -32,7 +32,9 @@ class TestStore extends IStore{
     files += (file.path.toString -> file)
   }
 
-  override def createSubBlock(subBlock: SubBlock): Unit = {}
+  override def createSubBlock(subBlock: SubBlock): Unit = {
+    subBlocks += (subBlock.uuid -> subBlock)
+  }
 
   override def getSizeBlock: Int = 8
 

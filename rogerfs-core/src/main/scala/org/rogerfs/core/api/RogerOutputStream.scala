@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.rogerfs.api
+package org.rogerfs.core.api
 
 import java.io.OutputStream
 
