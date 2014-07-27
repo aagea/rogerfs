@@ -16,8 +16,12 @@
 
 package org.rogerfs.common.store;
 
-public class StoreException extends Exception {
-  public StoreException(String message){
-    super(message);
+public abstract class PathBase {
+  public abstract String getName();
+  public abstract String getParent();
+  public abstract String getPath();
+
+  public String toString(){
+    return this.getPath();
   }
 }

@@ -1,8 +1,24 @@
+/*
+ * Copyright (c) 2014 Alvaro Agea.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.rogerfs.common.store
 
 import java.util.UUID
 
-case class File(path:IPath)
+case class File(path:PathBase)
 
 case class Partition(file:File, uuid: UUID)
 
@@ -13,7 +29,7 @@ case class SubBlock(block:Block, uuid: UUID, data: Array[Byte])
 object Path {
   private val PATH_REG_EXP = """^(?:\/[A-Za-z0-9_\-\.]+)+\/?$"""
 
-  def getPath(filePath: String): IPath = {
+  def getPath(filePath: String): PathBase = {
     if (isValid(filePath)) {
       val path = normalize(filePath)
       val nodes = path.split("/")
@@ -39,7 +55,7 @@ object Path {
     PATH_REG_EXP.r.findFirstIn(filePath) != None
   }
 
-  class InternalPath(val path: String, val name: String, val parent: String) extends IPath {
+  class InternalPath(val path: String, val name: String, val parent: String) extends PathBase {
     override def getName: String = name
 
     override def getParent: String = parent
