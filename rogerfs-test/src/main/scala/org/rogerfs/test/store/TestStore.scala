@@ -16,7 +16,9 @@
 
 package org.rogerfs.test.store
 
+import java.util
 import java.util.UUID
+import scala.collection.JavaConversions._
 
 import org.rogerfs.common.store._
 
@@ -47,4 +49,20 @@ class TestStore extends IStore{
   }
 
   override def getSizeSubBlock: Int = 100
+
+  override def getFiles(pathParent: String): util.List[File] = {
+    files.values.filter(file => file.path.getParent.equals(pathParent)).toList
+  }
+
+  override def getSubBlocks(uuidBlock: UUID): util.List[SubBlock] = {
+    subBlocks.values.filter(subBlock => subBlock.block.uuid.equals(uuidBlock)).toList
+  }
+
+  override def getBlocks(uuidPartition: UUID): util.List[Block] = {
+    blocks.values.filter(block => block.partition.uuid.equals(uuidPartition)).toList
+  }
+
+  override def getPartitions(pathFile: String): util.List[Partition] = {
+    partitions.values.filter(partition => partition.file.path.toString.equals(pathFile)).toList
+  }
 }

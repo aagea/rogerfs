@@ -26,22 +26,25 @@ class FileSystemSpec extends WordSpec{
 
   "A file" when {
     "is created with a path(string) " should {
-      fs.createFile("/abc/def")
+      val file = fs.createFile("/abc/def")
       "must exist" in {
         assert(store.files.contains("/abc/def"))
+        assert(file.path.getPath.equals("/abc/def"))
       }
     }
     "is created with a path(PathBase) " should {
-      fs.createFile(Path.getPath("/abc1/def1"))
+      val file = fs.createFile(Path.getPath("/abc1/def1"))
       "must exist" in {
         assert(store.files.contains("/abc1/def1"))
+        assert(file.path.getPath.equals("/abc1/def1"))
       }
     }
     "is created with a file " should {
-      val file = new File(Path.getPath("/abc2/def2"))
-      fs.createFile(file)
+      val fileOri = new File(Path.getPath("/abc2/def2"))
+      val file = fs.createFile(fileOri)
       "must exist" in {
-        assert(store.files.contains(file.path.getPath))
+        assert(store.files.contains(fileOri.path.getPath))
+        assert(file.path.getPath.equals(fileOri.path.getPath))
       }
     }
   }

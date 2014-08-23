@@ -36,14 +36,16 @@ class RogerOutputStream(val store:IStore, val partition:Partition) extends Outpu
 
 
   override def flush(){
-    val subBlock:SubBlock=new SubBlock(currentBlock,UUIDGen.getTimeUUID,buffer.toArray)
-    store.createSubBlock(subBlock)
-    currentNumberOfSubBlockWrite += 1
-    if(currentNumberOfSubBlockWrite >= store.getSizeBlock){
-      val block:Block=new Block(partition,UUIDGen.getTimeUUID)
-      store.createBlock(block)
-      currentBlock=block
-      currentNumberOfSubBlockWrite=0
+    if (buffer.nonEmpty) {
+      val subBlock: SubBlock = new SubBlock(currentBlock, UUIDGen.getTimeUUID, buffer.toArray)
+      store.createSubBlock(subBlock)
+      currentNumberOfSubBlockWrite += 1
+      if (currentNumberOfSubBlockWrite >= store.getSizeBlock) {
+        val block: Block = new Block(partition, UUIDGen.getTimeUUID)
+        store.createBlock(block)
+        currentBlock = block
+        currentNumberOfSubBlockWrite = 0
+      }
     }
   }
 
@@ -53,5 +55,10 @@ class RogerOutputStream(val store:IStore, val partition:Partition) extends Outpu
       this.flush()
       buffer.clear()
     }
+  }
+
+  override def close()={
+    this.flush()
+    super.close()
   }
 }

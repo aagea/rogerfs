@@ -16,19 +16,25 @@
  */
 
 import sbt._
+import scoverage.ScoverageSbtPlugin._
 
 object Build extends sbt.Build {
   lazy val root = (Project(id = "rogerfs", base = file("."))
     aggregate (core, common, test)
+    settings (instrumentSettings: _*)
     )
 
   lazy val core = (Project(id = "core", base = file("rogerfs-core"))
     dependsOn (common, test % "test->compile")
+    settings (instrumentSettings: _*)
     )
 
   lazy val test = (Project(id = "test", base = file("rogerfs-test"))
     dependsOn common
+    settings (instrumentSettings: _*)
     )
 
-  lazy val common = Project(id = "common", base = file("rogerfs-common"))
+  lazy val common = (Project(id = "common", base = file("rogerfs-common"))
+    settings (instrumentSettings: _*)
+    )
 }

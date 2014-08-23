@@ -16,11 +16,19 @@
 
 package org.rogerfs.common.store;
 
+import java.util.List;
+import java.util.UUID;
+
 public interface IStore {
   public void createFile(File file) throws StoreException;
   public void createPartition(Partition partition) throws StoreException;
   public void createBlock(Block block) throws StoreException;
   public void createSubBlock(SubBlock subBlock) throws StoreException;
+
+  public List<File> getFiles(String pathDirectory);
+  public List<Partition> getPartitions(String pathFile);
+  public List<Block> getBlocks(UUID uuidPartition);
+  public List<SubBlock> getSubBlocks(UUID block);
 
   public int getSizeBlock();
   public int getSizeSubBlock();
