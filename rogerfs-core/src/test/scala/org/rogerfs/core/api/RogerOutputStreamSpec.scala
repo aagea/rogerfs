@@ -16,47 +16,62 @@
 
 package org.rogerfs.core.api
 
+import org.rogerfs.common.store.{Path, File, IStore}
 import org.rogerfs.test.store.TestStore
 import org.scalatest.WordSpec
-import scala.collection.JavaConversions._
 
 class RogerOutputStreamSpec extends WordSpec{
-  val store = new TestStore
+  val store:IStore = new TestStore
   val fs = FileSystem.mount(store)
 
   "A RogerOutputStream" when {
     "write a byte not flush" should{
-      val file=fs.createFile("/abc/def1.file")
+      val file=fs.createFile(new File(Path.getPath("/abc/def1.file")))
       val os=fs.writeFile(file)
       os.write(42)
       "must be empty" in {
-        val subBlocks = store.getSubBlocks(os.currentBlock.uuid)
-        assert(subBlocks.isEmpty)
-        assert(os.currentNumberOfSubBlockWrite==0)
+        val subBlocks = store.getData(file,os.currentBlock,0)
+        assert(subBlocks==null)
+        assert(os.currentOffset==0)
       }
     }
 
     "write a byte and flush" should{
-      val file=fs.createFile("/abc/def1.file")
+      val file=fs.createFile(new File(Path.getPath("/abc/def1.file")))
       val os=fs.writeFile(file)
       os.write(42)
       os.flush()
       "must not be empty" in {
-        val subBlocks = store.getSubBlocks(os.currentBlock.uuid)
+        val subBlocks = store.getData(file,os.currentBlock,0)
         assert(subBlocks.nonEmpty)
-        assert(os.currentNumberOfSubBlockWrite==1)
+        assert(os.currentOffset==1)
       }
     }
 
     "write a byte and close" should{
-      val file=fs.createFile("/abc/def1.file")
+      val file=fs.createFile(new File(Path.getPath("/abc/def2.file")))
       val os=fs.writeFile(file)
       os.write(42)
       os.close()
       "must not be empty" in {
-        val subBlocks = store.getSubBlocks(os.currentBlock.uuid)
+        val subBlocks = store.getData(file,os.currentBlock,0)
         assert(subBlocks.nonEmpty)
-        assert(os.currentNumberOfSubBlockWrite==1)
+        assert(os.currentOffset==1)
+      }
+    }
+    "write an array byte and flush" should{
+      val file =fs.createFile(new File(Path.getPath("/abc/def3.file")))
+      val os =fs.writeFile(file)
+      os.write(Array[Byte](1,2,3))
+      os.flush()
+      "must not be empty" in {
+        val subBlocks = store.getData(file,os.currentBlock,0)
+        assert(subBlocks.nonEmpty)
+        assert(os.currentOffset==1)
+      }
+      "must contains three bytes" in{
+        val data = store.getData(file,os.currentBlock,0)
+        assert(data.length==3)
       }
     }
 

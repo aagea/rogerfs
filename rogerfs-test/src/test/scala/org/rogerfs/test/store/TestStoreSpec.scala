@@ -16,47 +16,38 @@
 
 package org.rogerfs.test.store
 
+import java.util.UUID
+
 import org.rogerfs.common.store._
-import org.rogerfs.common.utils.UUIDGen
 import org.scalatest.WordSpec
 
 class TestStoreSpec extends WordSpec{
   val store = new TestStore
   val path = Path.getPath("/abc/def")
   val file = new File(path)
-  val partition = new Partition(file, UUIDGen.getTimeUUID)
-  val block = new Block(partition, UUIDGen.getTimeUUID)
-  val subBlock = new SubBlock(block, UUIDGen.getTimeUUID, Array[Byte](1, 3, 4))
+  var currentBlock:UUID= null
 
   "A file" when {
     "is created " should {
       store.createFile(file)
       "must exist" in{
-        assert(store.files.contains(file.path.toString))
-      }
-    }
-  }
-  "A partition" when {
-    "is created " should {
-      store.createPartition(partition)
-      "must exist" in{
-        assert(store.partitions.contains(partition.uuid))
+        assert(store.existFile(file))
       }
     }
   }
   "A block" when {
-    "is created " should {
-      store.createBlock(block)
+    "is open " should {
+      currentBlock = store.openBlock(file)
       "must exist" in{
-        assert(store.blocks.contains(block.uuid))
+        assert(store.existBlock(file,currentBlock))
       }
     }
   }
-  "A sub-block" when {
-    "is created " should {
-      store.createSubBlock(subBlock)
+  "Some data" when {
+    "is added " should {
+      store.addData(file,currentBlock, Array[Byte](1,2,3,4),0)
       "must exist" in{
-        assert(store.subBlocks.contains(subBlock.uuid))
+        assert(store.getData(file,currentBlock,0)!=null)
       }
     }
   }

@@ -16,15 +16,7 @@
 
 package org.rogerfs.common.store
 
-import java.util.UUID
-
-case class File(path:PathBase)
-
-case class Partition(file:File, uuid: UUID)
-
-case class Block(partition:Partition, uuid: UUID)
-
-case class SubBlock(block:Block, uuid: UUID, data: Array[Byte])
+case class File(path: PathBase)
 
 object Path {
   private val PATH_REG_EXP = """^(?:\/[A-Za-z0-9_\-\.]+)+\/?$"""
@@ -33,20 +25,22 @@ object Path {
     if (isValid(filePath)) {
       val path = normalize(filePath)
       val nodes = path.split("/")
-      val name= nodes.last
-      val parent= nodes.dropWhile(str=>str.isEmpty).init.mkString("/","/","")
-      new InternalPath(path,name,parent)
+      val name = nodes.last
+      val parent = nodes.dropWhile(str => str.isEmpty).init.mkString("/", "/", "")
+      new InternalPath(path, name, parent)
     } else {
       throw new InvalidPathException("PATH is not valid!!")
     }
   }
 
-  def normalize(filePath: String):String = {
+  def normalize(filePath: String): String = {
     val lowercaseFilePath = filePath.toLowerCase
 
     val removeSlashFilePath = if (lowercaseFilePath.last == '/') {
       lowercaseFilePath.substring(0, lowercaseFilePath.length - 1)
-    } else { lowercaseFilePath }
+    } else {
+      lowercaseFilePath
+    }
 
     removeSlashFilePath
   }

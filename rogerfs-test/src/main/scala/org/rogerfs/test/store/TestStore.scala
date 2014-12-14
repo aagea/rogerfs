@@ -18,51 +18,67 @@ package org.rogerfs.test.store
 
 import java.util
 import java.util.UUID
-import scala.collection.JavaConversions._
 
-import org.rogerfs.common.store._
+import org.rogerfs.common.store.{File, IStore}
 
-import scala.collection.mutable
 
 class TestStore extends IStore{
-  val files= mutable.HashMap.empty[String,File]
-  val partitions = mutable.HashMap.empty[UUID, Partition]
-  val blocks = mutable.HashMap.empty[UUID, Block]
-  val subBlocks= mutable.HashMap.empty[UUID, SubBlock]
+
+  private class Block(val id:UUID, val data:Array[Array[Byte]]=new Array[Array[Byte]](getMaxOffset),
+                      var nextBlock:UUID=null)
+
+  private val files:util.Map[File,util.Map[UUID,Block]]=new util.HashMap[File,util.Map[UUID,Block]]()
 
   override def createFile(file: File): Unit = {
-    files += (file.path.toString -> file)
+    files.put(file,new util.HashMap[UUID,Block])
+  }
+  override def openBlock(file: File): UUID = {
+    val blocks= files.get(file)
+    val uuid=UUID.randomUUID()
+    blocks.put(uuid,new Block(uuid))
+    uuid
   }
 
-  override def createSubBlock(subBlock: SubBlock): Unit = {
-    subBlocks += (subBlock.uuid -> subBlock)
+  override def addData(file: File, uuid: UUID, data: Array[Byte], offset: Int): Unit = {
+    val mapBlocks= files.get(file)
+    val block= mapBlocks.get(uuid)
+    block.data(offset)=data
   }
 
-  override def getSizeBlock: Int = 8
-
-  override def createBlock(block: Block): Unit = {
-    blocks += (block.uuid -> block)
+  override def closeBlock(file: File, uuid: UUID, nextBlock: UUID): Unit = {
+    val mapBlocks= files.get(file)
+    val block= mapBlocks.get(uuid)
+    block.nextBlock=nextBlock
   }
 
-  override def createPartition(partition: Partition): Unit = {
-    partitions += (partition.uuid -> partition)
+  override def getData(file: File, uuid: UUID, offset: Int): Array[Byte] = {
+    val mapBlocks= files.get(file)
+    val block= mapBlocks.get(uuid)
+    block.data(offset)
   }
 
-  override def getSizeSubBlock: Int = 100
-
-  override def getFiles(pathParent: String): util.List[File] = {
-    files.values.filter(file => file.path.getParent.equals(pathParent)).toList
+  override def getBlocks(file: File): Array[UUID] = {
+    val mapBlocks= files.get(file)
+    val blocks:Array[UUID]=new Array[UUID](mapBlocks.size())
+    mapBlocks.keySet().toArray(blocks)
+    blocks
   }
 
-  override def getSubBlocks(uuidBlock: UUID): util.List[SubBlock] = {
-    subBlocks.values.filter(subBlock => subBlock.block.uuid.equals(uuidBlock)).toList
+  override def getFiles(pathDirectory: String): Array[File] = {
+    val filesArr:Array[File]=new Array[File](files.size())
+    files.keySet().toArray(filesArr)
+    filesArr
   }
 
-  override def getBlocks(uuidPartition: UUID): util.List[Block] = {
-    blocks.values.filter(block => block.partition.uuid.equals(uuidPartition)).toList
+  override def getMaxSizeData: Int = 16
+
+  override def getMaxOffset: Int = 8
+
+  def existFile(file:File): Boolean ={
+    files.containsKey(file)
+  }
+  def existBlock(file:File,block:UUID):Boolean={
+    existFile(file) && files.get(file).containsKey(block)
   }
 
-  override def getPartitions(pathFile: String): util.List[Partition] = {
-    partitions.values.filter(partition => partition.file.path.toString.equals(pathFile)).toList
-  }
 }

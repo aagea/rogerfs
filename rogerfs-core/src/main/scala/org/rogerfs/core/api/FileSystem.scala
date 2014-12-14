@@ -27,25 +27,16 @@ object FileSystem{
 
   private class FileSystem(store:IStore) extends IFileSystem{
 
-    def createFile(path: String): File = {
-      createFile(Path.getPath(path))
-    }
-
-    def createFile(path:PathBase): File = {
-      createFile(File(path))
-    }
-
     def createFile(file:File): File = {
       store.createFile(file)
       file
     }
 
     def writeFile(file:File):RogerOutputStream = {
-      val partition:Partition=new Partition(file,UUIDGen.getTimeUUID)
-      store.createPartition(partition)
-      new RogerOutputStream(store,partition)
+      new RogerOutputStream(store,file)
     }
 
+    override def readFile(file: File): RogerInputStream = ???
   }
 
 }

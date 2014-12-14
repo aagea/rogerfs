@@ -17,6 +17,7 @@
 package org.rogerfs.core.api
 
 import java.io.OutputStream
+import java.util.UUID
 
 import org.rogerfs.common.store._
 import org.rogerfs.common.utils.UUIDGen
@@ -24,41 +25,40 @@ import org.rogerfs.common.utils.UUIDGen
 import scala.collection.mutable.ArrayBuffer
 
 
-class RogerOutputStream(val store:IStore, val partition:Partition) extends OutputStream{
+class RogerOutputStream(val store: IStore, val file: File) extends OutputStream {
 
 
-  val buffer:ArrayBuffer[Byte]=new ArrayBuffer[Byte](store.getSizeSubBlock)
+  val buffer: ArrayBuffer[Byte] = new ArrayBuffer[Byte](store.getMaxSizeData)
 
-  var currentBlock:Block=new Block(partition,UUIDGen.getTimeUUID)
-  var currentNumberOfSubBlockWrite:Int=0
-  store.createBlock(currentBlock)
-
+  var currentBlock: UUID = store.openBlock(file)
+  var currentOffset: Int = 0
 
 
-  override def flush(){
+
+  override def flush() {
     if (buffer.nonEmpty) {
-      val subBlock: SubBlock = new SubBlock(currentBlock, UUIDGen.getTimeUUID, buffer.toArray)
-      store.createSubBlock(subBlock)
-      currentNumberOfSubBlockWrite += 1
-      if (currentNumberOfSubBlockWrite >= store.getSizeBlock) {
-        val block: Block = new Block(partition, UUIDGen.getTimeUUID)
-        store.createBlock(block)
-        currentBlock = block
-        currentNumberOfSubBlockWrite = 0
+      store.addData(file,currentBlock,buffer.toArray,currentOffset)
+      currentOffset+=1
+      if (currentOffset >= store.getMaxOffset) {
+        val newBlock=store.openBlock(file)
+        store.closeBlock(file,currentBlock,newBlock)
+        currentBlock=newBlock
+        currentOffset = 0
       }
     }
   }
 
   override def write(b: Int): Unit = {
     buffer += b.asInstanceOf[Byte]
-    if(buffer.size>=store.getSizeSubBlock){
+    if (buffer.size >= store.getMaxSizeData) {
       this.flush()
       buffer.clear()
     }
   }
 
-  override def close()={
+  override def close() = {
     this.flush()
+    store.closeBlock(file,currentBlock,null)
     super.close()
   }
 }
