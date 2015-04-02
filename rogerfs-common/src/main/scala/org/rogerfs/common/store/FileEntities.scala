@@ -16,12 +16,15 @@
 
 package org.rogerfs.common.store
 
-case class File(path: PathBase)
+
+case class File(path: IPath)
+
+
 
 object Path {
   private val PATH_REG_EXP = """^(?:\/[A-Za-z0-9_\-\.]+)+\/?$"""
 
-  def getPath(filePath: String): PathBase = {
+  def getPath(filePath: String): IPath = {
     if (isValid(filePath)) {
       val path = normalize(filePath)
       val nodes = path.split("/")
@@ -49,7 +52,7 @@ object Path {
     PATH_REG_EXP.r.findFirstIn(filePath) != None
   }
 
-  class InternalPath(val path: String, val name: String, val parent: String) extends PathBase {
+  class InternalPath(val path: String, val name: String, val parent: String) extends IPath {
     override def getName: String = name
 
     override def getParent: String = parent

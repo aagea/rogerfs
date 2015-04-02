@@ -15,7 +15,6 @@
 package org.rogerfs.core.api;
 
 import org.rogerfs.common.store.File;
-import org.rogerfs.common.store.PathBase;
 import org.rogerfs.common.store.StoreException;
 
 public interface IFileSystem {

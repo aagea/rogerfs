@@ -31,19 +31,19 @@ class RogerOutputStream(val store: IStore, val file: File) extends OutputStream 
   val buffer: ArrayBuffer[Byte] = new ArrayBuffer[Byte](store.getMaxSizeData)
 
   var currentBlock: UUID = store.openBlock(file)
-  var currentOffset: Int = 0
+  var currentSubBlock: Int = 0
 
 
 
   override def flush() {
     if (buffer.nonEmpty) {
-      store.addData(file,currentBlock,buffer.toArray,currentOffset)
-      currentOffset+=1
-      if (currentOffset >= store.getMaxOffset) {
+      store.addData(file,currentBlock,buffer.toArray,currentSubBlock)
+      currentSubBlock+=1
+      if (currentSubBlock >= store.getMaxSubBlocks) {
         val newBlock=store.openBlock(file)
         store.closeBlock(file,currentBlock,newBlock)
         currentBlock=newBlock
-        currentOffset = 0
+        currentSubBlock = 0
       }
     }
   }

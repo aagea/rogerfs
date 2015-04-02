@@ -36,7 +36,9 @@ object FileSystem{
       new RogerOutputStream(store,file)
     }
 
-    override def readFile(file: File): RogerInputStream = ???
+    override def readFile(file: File): RogerInputStream = {
+      new RogerInputStream(store,file)
+    }
   }
 
 }

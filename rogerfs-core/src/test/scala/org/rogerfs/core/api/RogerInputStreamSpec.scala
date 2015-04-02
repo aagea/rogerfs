@@ -14,14 +14,8 @@
  * limitations under the License.
  */
 
-package org.rogerfs.common.store;
+package org.rogerfs.core.api
 
-public abstract class PathBase {
-  public abstract String getName();
-  public abstract String getParent();
-  public abstract String getPath();
+class RogerInputStreamSpec {
 
-  public String toString(){
-    return this.getPath();
-  }
 }

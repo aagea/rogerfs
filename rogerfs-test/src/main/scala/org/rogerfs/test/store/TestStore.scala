@@ -20,11 +20,13 @@ import java.util
 import java.util.UUID
 
 import org.rogerfs.common.store.{File, IStore}
+import scala.collection.JavaConversions._
+
 
 
 class TestStore extends IStore{
 
-  private class Block(val id:UUID, val data:Array[Array[Byte]]=new Array[Array[Byte]](getMaxOffset),
+  private class Block(val id:UUID, val data:Array[Array[Byte]]=new Array[Array[Byte]](getMaxSubBlocks),
                       var nextBlock:UUID=null)
 
   private val files:util.Map[File,util.Map[UUID,Block]]=new util.HashMap[File,util.Map[UUID,Block]]()
@@ -57,11 +59,11 @@ class TestStore extends IStore{
     block.data(offset)
   }
 
-  override def getBlocks(file: File): Array[UUID] = {
+  override def getBlocks(file: File): util.SortedMap[UUID,UUID] = {
     val mapBlocks= files.get(file)
-    val blocks:Array[UUID]=new Array[UUID](mapBlocks.size())
-    mapBlocks.keySet().toArray(blocks)
-    blocks
+    val result=new util.TreeMap[UUID,UUID]()
+    mapBlocks.entrySet().foreach(x=>result.put(x.getKey,x.getValue.nextBlock))
+    result
   }
 
   override def getFiles(pathDirectory: String): Array[File] = {
@@ -72,7 +74,7 @@ class TestStore extends IStore{
 
   override def getMaxSizeData: Int = 16
 
-  override def getMaxOffset: Int = 8
+  override def getMaxSubBlocks: Int = 8
 
   def existFile(file:File): Boolean ={
     files.containsKey(file)

@@ -16,20 +16,8 @@
 
 package org.rogerfs.common.store;
 
-import java.util.SortedMap;
-import java.util.UUID;
-
-public interface IStore {
-
-  public void createFile(File file) throws StoreException;
-  public UUID openBlock(File file) throws StoreException;
-  public void addData(File file, UUID block, byte[] data, int subBlock) throws StoreException;
-  public void closeBlock(File file, UUID block, UUID nextBlock) throws StoreException;
-
-  public File[] getFiles(String pathDirectory);
-  public SortedMap<UUID,UUID> getBlocks(File file);
-  public byte[] getData(File file, UUID block, int subBlock);
-
-  public int getMaxSubBlocks();
-  public int getMaxSizeData();
+public interface IPath {
+  String getName();
+  String getParent();
+  String getPath();
 }

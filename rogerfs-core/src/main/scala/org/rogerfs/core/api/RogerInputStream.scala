@@ -17,13 +17,64 @@
 package org.rogerfs.core.api
 
 import java.io.InputStream
+import java.util
+import java.util.UUID
 
 import org.rogerfs.common.store._
 
+object RogerInputStream {
+  val BOF:Int = -1
+}
+
 class RogerInputStream(val store: IStore, val file: File) extends InputStream {
 
-  var currentPos: Int = -1
 
 
-  override def read(): Int = ???
+
+  val blocks:util.SortedMap[UUID,UUID]= store.getBlocks(file)
+
+
+  var currentBlock: UUID = nextBlock(null)
+
+  var currentSubBlock:Int = 0
+
+  var currentPos: Int = RogerInputStream.BOF
+
+  var currentData:Array[Byte]= getData()
+
+
+
+
+  override def read(): Int = {
+    if(currentPos >= store.getMaxSizeData-1){
+      currentPos = RogerInputStream.BOF
+      currentSubBlock +=1
+      if(currentSubBlock>store.getMaxSubBlocks){
+        currentSubBlock = 0
+        currentBlock = this.nextBlock(currentBlock)
+      }
+      currentData=getData();
+    }
+    currentPos+=1
+    currentData(currentPos)
+  }
+
+  def getData():Array[Byte] ={
+    store.getData(file,currentBlock,currentSubBlock)
+  }
+
+  def nextBlock(current:UUID):UUID = {
+      if(current==null){
+        blocks.firstKey()
+      }else {
+        val next = blocks.get(current)
+        blocks.remove(current)
+        if (next == null) {
+          blocks.firstKey()
+        } else {
+          next
+        }
+      }
+
+  }
 }
