@@ -16,6 +16,28 @@
 
 package org.rogerfs.core.api
 
-class RogerInputStreamSpec {
+import org.rogerfs.common.store.{Path, File, IStore}
+import org.rogerfs.test.store.TestStore
+import org.scalatest.WordSpec
+
+class RogerInputStreamSpec extends WordSpec{
+  val store:IStore  = new TestStore
+  val file=File(Path.getPath("/a/b/c"))
+  store.createFile(file)
+  val block1= store.openBlock(file)
+  store.addData(file,block1,Array[Byte](0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15),0)
+  store.closeBlock(file,block1,null)
+
+  val inputStream= new RogerInputStream(store,file)
+  val data=new Array[Byte](8)
+  inputStream.read(data)
+
+  assertResult(7)(data(7))
+
+  println(data(7))
+
+  inputStream.read(data)
+  assertResult(15)(data(7))
+  println(data(7))
 
 }
