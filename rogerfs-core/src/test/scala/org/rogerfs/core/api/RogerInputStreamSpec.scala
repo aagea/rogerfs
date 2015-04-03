@@ -18,26 +18,57 @@ package org.rogerfs.core.api
 
 import org.rogerfs.common.store.{Path, File, IStore}
 import org.rogerfs.test.store.TestStore
-import org.scalatest.WordSpec
+import org.scalatest.{OneInstancePerTest, WordSpec}
 
-class RogerInputStreamSpec extends WordSpec{
+class RogerInputStreamSpec extends WordSpec {
+
   val store:IStore  = new TestStore
   val file=File(Path.getPath("/a/b/c"))
   store.createFile(file)
   val block1= store.openBlock(file)
   store.addData(file,block1,Array[Byte](0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15),0)
-  store.closeBlock(file,block1,null)
+  store.addData(file,block1,Array[Byte](16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31),1)
+  val block2= store.openBlock(file)
+  store.closeBlock(file,block1,block2)
+  store.addData(file,block2,Array[Byte](0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15),0)
+  store.addData(file,block2,Array[Byte](16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31),1)
+  store.closeBlock(file,block2,null)
 
-  val inputStream= new RogerInputStream(store,file)
+
+  val fileSystem = FileSystem.mount(store)
+
+  val inputStream= fileSystem.readFile(file)
   val data=new Array[Byte](8)
-  inputStream.read(data)
 
-  assertResult(7)(data(7))
+  "A RogerInputStream" when {
+    "read Sequential bytes in multiples blocks" must {
 
-  println(data(7))
+      "not fail" in {
+        inputStream.read(data)
+        assertResult(7)(data(7))
 
-  inputStream.read(data)
-  assertResult(15)(data(7))
-  println(data(7))
+        inputStream.read(data)
+        assertResult(15)(data(7))
 
+        inputStream.read(data)
+        assertResult(23)(data(7))
+
+        inputStream.read(data)
+        assertResult(31)(data(7))
+
+        inputStream.read(data)
+        assertResult(7)(data(7))
+
+        inputStream.read(data)
+        assertResult(15)(data(7))
+
+        inputStream.read(data)
+        assertResult(23)(data(7))
+
+        inputStream.read(data)
+        assertResult(31)(data(7))
+
+      }
+    }
+  }
 }

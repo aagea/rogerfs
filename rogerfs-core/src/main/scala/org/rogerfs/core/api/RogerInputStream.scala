@@ -16,7 +16,7 @@
 
 package org.rogerfs.core.api
 
-import java.io.{ InputStream}
+import java.io.InputStream
 import java.util
 import java.util.UUID
 
@@ -45,7 +45,7 @@ class RogerInputStream(val store: IStore, val file: File) extends InputStream {
 
 
   override def read(): Int = {
-    if(bof || currentPos >= currentData.length) {
+    if(bof || currentPos >= currentData.length -1) {
       currentPos = 0
       nextSubBlock
       bof=false
@@ -69,7 +69,7 @@ class RogerInputStream(val store: IStore, val file: File) extends InputStream {
       if(!bof) {
         currentSubBlock += 1
       }
-      if (currentData==null || currentSubBlock < store.getMaxSubBlocks) {
+      if (currentData==null || currentSubBlock >= store.getMaxSubBlocks) {
         this.nextBlock
         currentSubBlock = 0
       }
