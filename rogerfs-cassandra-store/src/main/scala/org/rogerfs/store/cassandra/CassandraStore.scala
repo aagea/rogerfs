@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.rogerfs.driver.cassandra
+package org.rogerfs.store.cassandra
 
 import java.nio.ByteBuffer
 import java.util

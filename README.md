@@ -1,4 +1,4 @@
 rogerfs
 =======
 
-File system by Cassandra
+Multi-proposal filesystem wrapper
