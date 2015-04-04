@@ -28,7 +28,7 @@ class FileSystemSpec extends WordSpec{
     "is created with a file " should {
       val fileOri = new File(Path.getPath("/abc2/def2"))
       val file = fs.createFile(fileOri)
-      "must exist" in {
+      "exist" in {
         assert(store.existFile(fileOri))
         assert(file.path.getPath.equals(fileOri.path.getPath))
       }

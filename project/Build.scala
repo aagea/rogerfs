@@ -37,4 +37,7 @@ object Build extends sbt.Build {
   lazy val common = (Project(id = "common", base = file("rogerfs-common"))
     settings (instrumentSettings: _*)
     )
+  lazy val cassandraDriver= (Project(id="cassandra-driver", base = file("rogerfs-cassandra-driver"))
+    dependsOn(common)
+    settings(instrumentSettings: _*))
 }

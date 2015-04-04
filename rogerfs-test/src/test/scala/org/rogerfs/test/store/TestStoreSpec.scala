@@ -30,7 +30,7 @@ class TestStoreSpec extends WordSpec{
   "A file" when {
     "is created " should {
       store.createFile(file)
-      "must exist" in{
+      "exist" in{
         assert(store.existFile(file))
       }
     }
@@ -38,7 +38,7 @@ class TestStoreSpec extends WordSpec{
   "A block" when {
     "is open " should {
       currentBlock = store.openBlock(file)
-      "must exist" in{
+      "exist" in{
         assert(store.existBlock(file,currentBlock))
       }
     }
@@ -46,7 +46,7 @@ class TestStoreSpec extends WordSpec{
   "Some data" when {
     "is added " should {
       store.addData(file,currentBlock, Array[Byte](1,2,3,4),0)
-      "must exist" in{
+      "exist" in{
         assert(store.getData(file,currentBlock,0)!=null)
       }
     }

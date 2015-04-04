@@ -16,9 +16,12 @@
 
 package org.rogerfs.common.store
 
-
+object File {
+  def getFile(path:String):File={
+    File(Path.getPath(path))
+  }
+}
 case class File(path: IPath)
-
 
 
 object Path {
@@ -27,9 +30,9 @@ object Path {
   def getPath(filePath: String): IPath = {
     if (isValid(filePath)) {
       val path = normalize(filePath)
-      val nodes = path.split("/")
+      val nodes = path.split("/").dropWhile(str => str.isEmpty)
       val name = nodes.last
-      val parent = nodes.dropWhile(str => str.isEmpty).init.mkString("/", "/", "")
+      val parent = nodes.init.mkString("/", "/", "")
       new InternalPath(path, name, parent)
     } else {
       throw new InvalidPathException("PATH is not valid!!")

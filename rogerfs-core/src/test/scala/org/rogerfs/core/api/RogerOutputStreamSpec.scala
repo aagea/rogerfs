@@ -29,7 +29,7 @@ class RogerOutputStreamSpec extends WordSpec{
       val file=fs.createFile(new File(Path.getPath("/abc/def1.file")))
       val os=fs.writeFile(file)
       os.write(42)
-      "must be empty" in {
+      "be empty" in {
         val subBlocks = store.getData(file,os.currentBlock,0)
         assert(subBlocks==null)
         assert(os.currentSubBlock==0)
@@ -41,7 +41,7 @@ class RogerOutputStreamSpec extends WordSpec{
       val os=fs.writeFile(file)
       os.write(42)
       os.flush()
-      "must not be empty" in {
+      "not be empty" in {
         val subBlocks = store.getData(file,os.currentBlock,0)
         assert(subBlocks.nonEmpty)
         assert(os.currentSubBlock==1)
@@ -53,7 +53,7 @@ class RogerOutputStreamSpec extends WordSpec{
       val os=fs.writeFile(file)
       os.write(42)
       os.close()
-      "must not be empty" in {
+      "not be empty" in {
         val subBlocks = store.getData(file,os.currentBlock,0)
         assert(subBlocks.nonEmpty)
         assert(os.currentSubBlock==1)
@@ -64,12 +64,12 @@ class RogerOutputStreamSpec extends WordSpec{
       val os =fs.writeFile(file)
       os.write(Array[Byte](1,2,3))
       os.flush()
-      "must not be empty" in {
+      "not be empty" in {
         val subBlocks = store.getData(file,os.currentBlock,0)
         assert(subBlocks.nonEmpty)
         assert(os.currentSubBlock==1)
       }
-      "must contains three bytes" in{
+      "contains three bytes" in{
         val data = store.getData(file,os.currentBlock,0)
         assert(data.length==3)
       }
