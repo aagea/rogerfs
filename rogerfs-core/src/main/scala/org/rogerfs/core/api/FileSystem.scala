@@ -17,7 +17,6 @@
 package org.rogerfs.core.api
 
 import org.rogerfs.common.store._
-import org.rogerfs.common.utils.UUIDGen
 
 
 object FileSystem{
@@ -27,16 +26,15 @@ object FileSystem{
 
   private class FileSystem(store:IStore) extends IFileSystem{
 
-    def createFile(file:File): File = {
+    def createFile(file:IPath): Unit = {
       store.createFile(file)
-      file
     }
 
-    def writeFile(file:File):RogerOutputStream = {
+    def writeFile(file:IPath):RogerOutputStream = {
       new RogerOutputStream(store,file)
     }
 
-    override def readFile(file: File): RogerInputStream = {
+    override def readFile(file: IPath): RogerInputStream = {
       new RogerInputStream(store,file)
     }
   }

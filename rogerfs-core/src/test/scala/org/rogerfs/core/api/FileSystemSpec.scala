@@ -16,21 +16,20 @@
 
 package org.rogerfs.core.api
 
-import org.rogerfs.common.store.{File, Path}
+import org.rogerfs.common.store.Path
 import org.rogerfs.test.store.TestStore
 import org.scalatest.WordSpec
 
-class FileSystemSpec extends WordSpec{
+class FileSystemSpec extends WordSpec {
   val store = new TestStore
   val fs = FileSystem.mount(store)
 
   "A file" when {
     "is created with a file " should {
-      val fileOri = new File(Path.getPath("/abc2/def2"))
-      val file = fs.createFile(fileOri)
+      val fileOri = Path.getPath("/abc2/def2")
+      fs.createFile(fileOri)
       "exist" in {
         assert(store.existFile(fileOri))
-        assert(file.path.getPath.equals(fileOri.path.getPath))
       }
     }
   }

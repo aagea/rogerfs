@@ -16,65 +16,69 @@
 
 package org.rogerfs.core.api
 
-import org.rogerfs.common.store.{Path, File, IStore}
+import org.rogerfs.common.store.IStore
+import org.rogerfs.common.store.Path
 import org.rogerfs.test.store.TestStore
 import org.scalatest.WordSpec
 
-class RogerOutputStreamSpec extends WordSpec{
-  val store:IStore = new TestStore
+class RogerOutputStreamSpec extends WordSpec {
+  val store: IStore = new TestStore
   val fs = FileSystem.mount(store)
 
   "A RogerOutputStream" when {
-    "write a byte not flush" should{
-      val file=fs.createFile(new File(Path.getPath("/abc/def1.file")))
-      val os=fs.writeFile(file)
+    "write a byte not flush" should {
+      val file=Path.getPath("/abc/def0.file")
+      fs.createFile(file)
+      val os = fs.writeFile(file)
       os.write(42)
       "be empty" in {
-        val subBlocks = store.getData(file,os.currentBlock,0)
-        assert(subBlocks==null)
-        assert(os.currentSubBlock==0)
+        val subBlocks = store.getData(file, os.currentBlock, 0)
+        assert(subBlocks == null)
+        assert(os.currentSubBlock == 0)
       }
     }
 
-    "write a byte and flush" should{
-      val file=fs.createFile(new File(Path.getPath("/abc/def1.file")))
-      val os=fs.writeFile(file)
+    "write a byte and flush" should {
+      val file=Path.getPath("/abc/def1.file")
+      fs.createFile(file)
+      val os = fs.writeFile(file)
       os.write(42)
       os.flush()
       "not be empty" in {
-        val subBlocks = store.getData(file,os.currentBlock,0)
+        val subBlocks = store.getData(file, os.currentBlock, 0)
         assert(subBlocks.nonEmpty)
-        assert(os.currentSubBlock==1)
+        assert(os.currentSubBlock == 1)
       }
     }
 
-    "write a byte and close" should{
-      val file=fs.createFile(new File(Path.getPath("/abc/def2.file")))
-      val os=fs.writeFile(file)
+    "write a byte and close" should {
+      val file=Path.getPath("/abc/def2.file")
+      fs.createFile(file)
+      val os = fs.writeFile(file)
       os.write(42)
       os.close()
       "not be empty" in {
-        val subBlocks = store.getData(file,os.currentBlock,0)
+        val subBlocks = store.getData(file, os.currentBlock, 0)
         assert(subBlocks.nonEmpty)
-        assert(os.currentSubBlock==1)
+        assert(os.currentSubBlock == 1)
       }
     }
-    "write an array byte and flush" should{
-      val file =fs.createFile(new File(Path.getPath("/abc/def3.file")))
-      val os =fs.writeFile(file)
-      os.write(Array[Byte](1,2,3))
+    "write an array byte and flush" should {
+      val file=Path.getPath("/abc/def3.file")
+      fs.createFile(file)
+      val os = fs.writeFile(file)
+      os.write(Array[Byte](1, 2, 3))
       os.flush()
       "not be empty" in {
-        val subBlocks = store.getData(file,os.currentBlock,0)
+        val subBlocks = store.getData(file, os.currentBlock, 0)
         assert(subBlocks.nonEmpty)
-        assert(os.currentSubBlock==1)
+        assert(os.currentSubBlock == 1)
       }
-      "contains three bytes" in{
-        val data = store.getData(file,os.currentBlock,0)
-        assert(data.length==3)
+      "contains three bytes" in {
+        val data = store.getData(file, os.currentBlock, 0)
+        assert(data.length == 3)
       }
     }
-
 
 
   }

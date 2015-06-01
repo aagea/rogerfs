@@ -16,13 +16,6 @@
 
 package org.rogerfs.common.store
 
-object File {
-  def getFile(path:String):File={
-    File(Path.getPath(path))
-  }
-}
-case class File(path: IPath)
-
 
 object Path {
   private val PATH_REG_EXP = """^(?:\/[A-Za-z0-9_\-\.]+)+\/?$"""
@@ -67,6 +60,6 @@ object Path {
 
 }
 
-class InvalidPathException(msg: String) extends RuntimeException(msg)
+
 
 

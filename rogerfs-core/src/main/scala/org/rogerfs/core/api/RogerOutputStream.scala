@@ -20,12 +20,11 @@ import java.io.OutputStream
 import java.util.UUID
 
 import org.rogerfs.common.store._
-import org.rogerfs.common.utils.UUIDGen
 
 import scala.collection.mutable.ArrayBuffer
 
 
-class RogerOutputStream(val store: IStore, val file: File) extends OutputStream {
+class RogerOutputStream(val store: IStore, val file: IPath) extends OutputStream {
 
 
   val buffer: ArrayBuffer[Byte] = new ArrayBuffer[Byte](store.getMaxSizeData)
@@ -34,15 +33,14 @@ class RogerOutputStream(val store: IStore, val file: File) extends OutputStream 
   var currentSubBlock: Int = 0
 
 
-
   override def flush() {
     if (buffer.nonEmpty) {
-      store.addData(file,currentBlock,buffer.toArray,currentSubBlock)
-      currentSubBlock+=1
+      store.addData(file, currentBlock, buffer.toArray, currentSubBlock)
+      currentSubBlock += 1
       if (currentSubBlock >= store.getMaxSubBlocks) {
-        val newBlock=store.openBlock(file)
-        store.closeBlock(file,currentBlock,newBlock)
-        currentBlock=newBlock
+        val newBlock = store.openBlock(file)
+        store.closeBlock(file, currentBlock, newBlock)
+        currentBlock = newBlock
         currentSubBlock = 0
       }
     }
@@ -58,7 +56,7 @@ class RogerOutputStream(val store: IStore, val file: File) extends OutputStream 
 
   override def close() = {
     this.flush()
-    store.closeBlock(file,currentBlock,null)
+    store.closeBlock(file, currentBlock, null)
     super.close()
   }
 }

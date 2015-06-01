@@ -21,16 +21,15 @@ import java.util.UUID
 import org.rogerfs.common.store._
 import org.scalatest.WordSpec
 
-class TestStoreSpec extends WordSpec{
+class TestStoreSpec extends WordSpec {
   val store = new TestStore
-  val path = Path.getPath("/abc/def")
-  val file = new File(path)
-  var currentBlock:UUID= null
+  val file = Path.getPath("/abc/def")
+  var currentBlock: UUID = null
 
   "A file" when {
     "is created " should {
       store.createFile(file)
-      "exist" in{
+      "exist" in {
         assert(store.existFile(file))
       }
     }
@@ -38,16 +37,16 @@ class TestStoreSpec extends WordSpec{
   "A block" when {
     "is open " should {
       currentBlock = store.openBlock(file)
-      "exist" in{
-        assert(store.existBlock(file,currentBlock))
+      "exist" in {
+        assert(store.existBlock(file, currentBlock))
       }
     }
   }
   "Some data" when {
     "is added " should {
-      store.addData(file,currentBlock, Array[Byte](1,2,3,4),0)
-      "exist" in{
-        assert(store.getData(file,currentBlock,0)!=null)
+      store.addData(file, currentBlock, Array[Byte](1, 2, 3, 4), 0)
+      "exist" in {
+        assert(store.getData(file, currentBlock, 0) != null)
       }
     }
   }

@@ -19,56 +19,61 @@ package org.rogerfs.test.store
 import java.util
 import java.util.UUID
 
-import org.rogerfs.common.store.{File, IStore}
+import org.rogerfs.common.store.IPath
+import org.rogerfs.common.store.IStore
+
 import scala.collection.JavaConversions._
 
 
+class TestStore extends IStore {
 
-class TestStore extends IStore{
+  private class Block(val id: UUID,
+                      val data: Array[Array[Byte]] = new Array[Array[Byte]](getMaxSubBlocks),
+                      var nextBlock: UUID = null)
 
-  private class Block(val id:UUID, val data:Array[Array[Byte]]=new Array[Array[Byte]](getMaxSubBlocks),
-                      var nextBlock:UUID=null)
+  private val files: util.Map[String, util.Map[UUID, Block]] = new util.HashMap[String, util
+  .Map[UUID,
+    Block]]()
 
-  private val files:util.Map[File,util.Map[UUID,Block]]=new util.HashMap[File,util.Map[UUID,Block]]()
-
-  override def createFile(file: File): Unit = {
-    files.put(file,new util.HashMap[UUID,Block])
+  override def createFile(file: IPath): Unit = {
+    files.put(file.getPath, new util.HashMap[UUID, Block])
   }
-  override def openBlock(file: File): UUID = {
-    val blocks= files.get(file)
-    val uuid=UUID.randomUUID()
-    blocks.put(uuid,new Block(uuid))
+
+  override def openBlock(file: IPath): UUID = {
+    val blocks = files.get(file.getPath)
+    val uuid = UUID.randomUUID()
+    blocks.put(uuid, new Block(uuid))
     uuid
   }
 
-  override def addData(file: File, uuid: UUID, data: Array[Byte], offset: Int): Unit = {
-    val mapBlocks= files.get(file)
-    val block= mapBlocks.get(uuid)
-    block.data(offset)=data
+  override def addData(file: IPath, uuid: UUID, data: Array[Byte], offset: Int): Unit = {
+    val mapBlocks = files.get(file.getPath)
+    val block = mapBlocks.get(uuid)
+    block.data(offset) = data
   }
 
-  override def closeBlock(file: File, uuid: UUID, nextBlock: UUID): Unit = {
-    val mapBlocks= files.get(file)
-    val block= mapBlocks.get(uuid)
-    block.nextBlock=nextBlock
+  override def closeBlock(file: IPath, uuid: UUID, nextBlock: UUID): Unit = {
+    val mapBlocks = files.get(file.getPath)
+    val block = mapBlocks.get(uuid)
+    block.nextBlock = nextBlock
   }
 
-  override def getData(file: File, uuid: UUID, offset: Int): Array[Byte] = {
-    val mapBlocks= files.get(file)
-    val block= mapBlocks.get(uuid)
+  override def getData(file: IPath, uuid: UUID, offset: Int): Array[Byte] = {
+    val mapBlocks = files.get(file.getPath)
+    val block = mapBlocks.get(uuid)
     block.data(offset)
   }
 
-  override def getBlocks(file: File): util.SortedMap[UUID,UUID] = {
-    val mapBlocks= files.get(file)
-    val result=new util.TreeMap[UUID,UUID]()
-    mapBlocks.entrySet().foreach(x=>result.put(x.getKey,x.getValue.nextBlock))
+  override def getBlocks(file: IPath): util.SortedMap[UUID, UUID] = {
+    val mapBlocks = files.get(file.getPath)
+    val result = new util.TreeMap[UUID, UUID]()
+    mapBlocks.entrySet().foreach(x => result.put(x.getKey, x.getValue.nextBlock))
     result
   }
 
-  override def getFiles(pathDirectory: String): Array[File] = {
-    val filesArr:Array[File]=new Array[File](files.size())
-    files.keySet().toArray(filesArr)
+  override def getFiles(pathDirectory: IPath): Array[IPath] = {
+    val filesArr: Array[IPath] = new Array[IPath](files.size())
+    files.keySet().toArray(filesArr).filter(x=>x.getParent == pathDirectory.getPath)
     filesArr
   }
 
@@ -76,11 +81,12 @@ class TestStore extends IStore{
 
   override def getMaxSubBlocks: Int = 8
 
-  def existFile(file:File): Boolean ={
-    files.containsKey(file)
+  def existFile(file: IPath): Boolean = {
+    files.containsKey(file.getPath)
   }
-  def existBlock(file:File,block:UUID):Boolean={
-    existFile(file) && files.get(file).containsKey(block)
+
+  def existBlock(file: IPath, block: UUID): Boolean = {
+    existFile(file) && files.get(file.getPath).containsKey(block)
   }
 
 }

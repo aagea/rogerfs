@@ -14,15 +14,15 @@
 
 package org.rogerfs.core.api;
 
-import org.rogerfs.common.store.File;
+import org.rogerfs.common.store.IPath;
 import org.rogerfs.common.store.StoreException;
 
 public interface IFileSystem {
 
-    public File createFile(File file) throws StoreException;
+  void createFile(IPath file) throws StoreException;
 
-    public RogerOutputStream writeFile(File file) throws StoreException;
+  RogerOutputStream writeFile(IPath file) throws StoreException;
 
-    public RogerInputStream readFile(File file) throws StoreException;
+  RogerInputStream readFile(IPath file) throws StoreException;
 
 }

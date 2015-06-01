@@ -22,7 +22,7 @@ import java.util.UUID
 
 import org.rogerfs.common.store._
 
-class RogerInputStream(val store: IStore, val file: File) extends InputStream {
+class RogerInputStream(val store: IStore, val file: IPath) extends InputStream {
 
 
 
