@@ -19,6 +19,10 @@ package org.rogerfs.common.store;
 import java.util.SortedMap;
 import java.util.UUID;
 
+import org.apache.spark.rdd.RDD;
+
+import scala.Tuple3;
+
 public interface IStore {
 
   void createFile(IPath file) throws StoreException;
@@ -29,6 +33,8 @@ public interface IStore {
   IPath[] getFiles(IPath pathDirectory);
   SortedMap<UUID,UUID> getBlocks(IPath file);
   byte[] getData(IPath file, UUID block, int subBlock);
+
+  RDD<RawData> getRdd(IPath directory);
 
   int getMaxSubBlocks();
   int getMaxSizeData();

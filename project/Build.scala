@@ -20,7 +20,7 @@ import scoverage.ScoverageSbtPlugin._
 
 object Build extends sbt.Build {
   lazy val root = (Project(id = "rogerfs", base = file("."))
-    aggregate (core, common, test)
+    aggregate (core, common, test, cassandraStore, shell)
     settings (instrumentSettings: _*)
     )
 
@@ -37,7 +37,13 @@ object Build extends sbt.Build {
   lazy val common = (Project(id = "common", base = file("rogerfs-common"))
     settings (instrumentSettings: _*)
     )
-  lazy val cassandraDriver= (Project(id="cassandra-store", base = file("rogerfs-cassandra-store"))
-    dependsOn(common)
+
+  lazy val cassandraStore= (Project(id="cassandra-store", base = file("rogerfs-cassandra-store"))
+    dependsOn common
     settings(instrumentSettings: _*))
+
+  lazy val shell=(Project(id="shell", base= file("rogerfs-shell"))
+    dependsOn(common,core,cassandraStore, test % "test->compile")
+    settings(instrumentSettings: _*)
+    )
 }
