@@ -37,7 +37,7 @@ import org.rogerfs.common.utils.UUIDGen
 
 import scala.collection.JavaConversions._
 
-object CassandraStoreConfig{
+object CassandraStoreConfig {
   val CONF_NODE = "rogerfs.cassandra.node"
   val CONF_PORT = "rogerfs.cassandra.port"
   val CONF_KEYSPACE = "rogerfs.cassandra.keyspace"
@@ -45,15 +45,15 @@ object CassandraStoreConfig{
   val CONF_MAX_SIZE_DATA = "rogerfs.cassandra.max-size-data"
   val CONF_SPARK_MASTER = "rogerfs.cassandra.spark-master"
 
-  def getDefaultConfig():CassandraStoreConfig={
-    val conf= ConfigFactory.load()
-    val node=conf.getString(CONF_NODE)
-    val port=conf.getInt(CONF_PORT)
-    val keyspace=conf.getString(CONF_KEYSPACE)
-    val maxSubBlock=conf.getInt(CONF_MAX_SUBBLOCK)
-    val maxSizeData=conf.getInt(CONF_MAX_SIZE_DATA)
-    val sparkMaster=conf.getString(CONF_SPARK_MASTER)
-    CassandraStoreConfig(node,port,keyspace,maxSubBlock,maxSizeData,sparkMaster)
+  def getDefaultConfig(): CassandraStoreConfig = {
+    val conf = ConfigFactory.load()
+    val node = conf.getString(CONF_NODE)
+    val port = conf.getInt(CONF_PORT)
+    val keyspace = conf.getString(CONF_KEYSPACE)
+    val maxSubBlock = conf.getInt(CONF_MAX_SUBBLOCK)
+    val maxSizeData = conf.getInt(CONF_MAX_SIZE_DATA)
+    val sparkMaster = conf.getString(CONF_SPARK_MASTER)
+    CassandraStoreConfig(node, port, keyspace, maxSubBlock, maxSizeData, sparkMaster)
   }
 
 }
@@ -76,14 +76,14 @@ object CassandraStore {
   val DEFAULT_SPARK_MASTER = "local[8]"
 
 
-  val CREATE_TABLE = "CREATE TABLE IF NOT EXISTS filesystem (" +
-    "path text," +
-    "parent text ," +
-    "block uuid," +
-    "subblock int," +
-    "nextBlock uuid static," +
-    "data blob" +
-    "PRIMARY KEY ((path, parent, block),subblock)" +
+  val CREATE_TABLE = "CREATE TABLE IF NOT EXISTS filesystem ( " +
+    "path text, " +
+    "parent text, " +
+    "block uuid, " +
+    "subblock int, " +
+    "nextBlock uuid, " +
+    "data blob, " +
+    "PRIMARY KEY ((path, block),subblock) " +
     ");"
 
   val PATH_INDEX = "CREATE INDEX IF NOT EXISTS path_index ON filesystem (path);"
@@ -92,10 +92,12 @@ object CassandraStore {
 
 }
 
-case class CassandraStore(config: CassandraStoreConfig=CassandraStoreConfig.getDefaultConfig())
+case class CassandraStore(config: CassandraStoreConfig = CassandraStoreConfig.getDefaultConfig())
   extends IStore {
+  @transient
   val cluster: Cluster = Cluster.builder().addContactPoint(config.node)
     .withPort(config.port).build()
+  @transient
   val session: Session = {
     val ses = cluster.connect(config.keyspace)
     ses.execute(CassandraStore.CREATE_TABLE)
@@ -104,10 +106,12 @@ case class CassandraStore(config: CassandraStoreConfig=CassandraStoreConfig.getD
     ses
   }
 
-  val sparkConf = new SparkConf().setMaster(config.sparkMaster)
+  @transient
+  lazy val sparkConf = new SparkConf().setMaster(config.sparkMaster)
+    .setAppName("RogerFS")
     .set("spark.cassandra.connection.host", config.node)
-    .set("spark.cassandra.connection.native.port", config.port.toString)
 
+  @transient
   lazy val sc = new SparkContext(sparkConf)
 
 
@@ -124,7 +128,6 @@ case class CassandraStore(config: CassandraStoreConfig=CassandraStoreConfig.getD
       .and(QueryBuilder.eq("parent", file.getParent))
       .and(QueryBuilder.eq("block", block))
       .and(QueryBuilder.eq("subblock", subBlock))
-      .getQueryString
     val results: ResultSet = session.execute(query)
     if (results.isExhausted) {
       null
@@ -142,12 +145,12 @@ case class CassandraStore(config: CassandraStoreConfig=CassandraStoreConfig.getD
 
   override def getBlocks(file: IPath): util.SortedMap[UUID, UUID] = {
     val result: util.SortedMap[UUID, UUID] = new util.TreeMap[UUID, UUID]()
-    val query = QueryBuilder.select("block", "nextBlock").from(CassandraStore.TABLE_NAME)
-      .where(QueryBuilder.eq("path", file)).orderBy(QueryBuilder.asc("block"))
+    val query = QueryBuilder.select("block", "subblock", "nextBlock").from(CassandraStore.TABLE_NAME)
+      .where(QueryBuilder.eq("path", file.getPath))
     val rows = session.execute(query)
-    rows.foreach(row => {
-      val block = row.getUUID("block")
-      val nextBlock = row.getUUID("nextBlock")
+    rows.map(row => (row.getUUID("block"), row.getUUID("nextBlock"))).toList.distinct.foreach(row => {
+      val block = row._1
+      val nextBlock = row._2
       result.put(block, nextBlock)
     })
     result
@@ -157,7 +160,7 @@ case class CassandraStore(config: CassandraStoreConfig=CassandraStoreConfig.getD
     val uuid = UUIDGen.getTimeUUID
     val query = QueryBuilder.insertInto(CassandraStore.TABLE_NAME).value("path", file.getPath)
       .value("parent", file.getParent).value("block", uuid)
-      .value("subblock", 0).getQueryString
+      .value("subblock", 0)
     session.execute(query)
     uuid
   }
@@ -166,7 +169,7 @@ case class CassandraStore(config: CassandraStoreConfig=CassandraStoreConfig.getD
     val buffer: ByteBuffer = ByteBuffer.wrap(data)
     val query = QueryBuilder.insertInto(CassandraStore.TABLE_NAME).value("path", file.getPath)
       .value("parent", file.getParent).value("block", block)
-      .value("subblock", subBlock).value("data", buffer).getQueryString
+      .value("subblock", subBlock).value("data", buffer)
     session.execute(query)
   }
 
@@ -174,8 +177,8 @@ case class CassandraStore(config: CassandraStoreConfig=CassandraStoreConfig.getD
     val query = QueryBuilder.update(CassandraStore.TABLE_NAME)
       .`with`(QueryBuilder.set("nextBlock", nextBlock))
       .where(QueryBuilder.eq("path", file.getPath))
-      .and(QueryBuilder.eq("parent", file.getParent))
-      .and(QueryBuilder.eq("block", block)).getQueryString
+      .and(QueryBuilder.eq("subblock", this.getMaxSubBlocks))
+      .and(QueryBuilder.eq("block", block))
     session.execute(query)
   }
 
@@ -183,7 +186,6 @@ case class CassandraStore(config: CassandraStoreConfig=CassandraStoreConfig.getD
     val result: util.List[IPath] = new util.ArrayList[IPath]()
     val query = QueryBuilder.select("path").from(CassandraStore.TABLE_NAME)
       .where(QueryBuilder.eq("parent", pathDirectory.getPath))
-      .getQueryString
     val rows: ResultSet = session.execute(query)
 
     rows.foreach(row => {
@@ -194,14 +196,18 @@ case class CassandraStore(config: CassandraStoreConfig=CassandraStoreConfig.getD
   }
 
   override def getRdd(directory: IPath): RDD[RawData] = {
-    sc.cassandraTable(config.keyspace, CassandraStore.TABLE_NAME)
-      .select("path", "block", "nextBlock", "subblock", "data")
-      .where("parent = ?", directory.getPath).spanBy(row => (row.getString("path"),
-      row.getString("parent"), row.getUUID("block")))
+    val dir=directory.getPath
+    val first = sc.cassandraTable(config.keyspace, CassandraStore.TABLE_NAME)
+      .select("path", "parent", "block", "nextblock", "subblock", "data")
+      .where("parent = ?", dir)
+
+    val firstArr=first.collect
+
+    first.spanBy(row => (row.getString("path"), row.getString("parent"), row.getUUID("block")))
       .map(row => new RawData(Path.getPath(row._1._1), row._1._3,
       row._2.foldLeft(List[Byte]())
         ((acc, curr) => acc ::: curr.getBytes("data").array().toList).toArray,
-      row._2.head.getUUID("nextBlock")))
+      row._2.head.getUUIDOption("nextblock").orNull))
   }
 
 }

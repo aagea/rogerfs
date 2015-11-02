@@ -25,77 +25,78 @@ import org.rogerfs.common.store._
 class RogerInputStream(val store: IStore, val file: IPath) extends InputStream {
 
 
-
-
-  val blocks:util.SortedMap[UUID,UUID]= store.getBlocks(file)
+  val blocks: util.SortedMap[UUID, UUID] = store.getBlocks(file)
 
 
   var currentBlock: UUID = null
 
-  var currentSubBlock:Int = 0
+  var currentSubBlock: Int = 0
 
   var currentPos: Int = 0
 
-  var currentData:Array[Byte]= null
+  var currentData: Array[Byte] = null
 
-  var bof=true
+  var bof = true
   var eof = false
 
 
-
-
   override def read(): Int = {
-    if(bof || currentPos >= currentData.length -1) {
-      currentPos = 0
-      nextSubBlock
-      bof=false
-    } else {
-      currentPos += 1
-    }
-    if(eof){
+    if (eof) {
       -1
-    }else{
-      currentData(currentPos)
+    } else {
+      if (bof || currentPos >= currentData.length - 1) {
+        currentPos = 0
+        nextSubBlock
+        bof = false
+      } else {
+        currentPos += 1
+      }
+      if (eof) {
+        -1
+      } else {
+        currentData(currentPos)
+      }
     }
   }
 
-  private def getData:Array[Byte] ={
-    store.getData(file,currentBlock,currentSubBlock)
+  private def getData: Array[Byte] = {
+    store.getData(file, currentBlock, currentSubBlock)
   }
 
-  private def nextSubBlock= {
+  private def nextSubBlock = {
 
-    do{
-      if(!bof) {
+    do {
+      if (!bof) {
         currentSubBlock += 1
       }
-      if (currentData==null || currentSubBlock >= store.getMaxSubBlocks) {
+      if (currentData == null || currentSubBlock >= store.getMaxSubBlocks) {
         this.nextBlock
         currentSubBlock = 0
       }
-      if(eof) {
-        currentData=null
+      if (eof) {
+        currentData = null
       } else {
         currentData = getData
       }
-    } while (currentData==null && !eof)
+    } while (currentData == null && !eof)
 
   }
 
-  private def nextBlock = {
-      if(blocks.size()==0){
-        eof=true
-      } else if(this.currentBlock==null){
-        currentBlock = blocks.firstKey()
-      }else {
-        val next = blocks.get(this.currentBlock)
-        blocks.remove(this.currentBlock)
-        if (next == null) {
-          blocks.firstKey()
-        } else {
-          this.currentBlock=next
-        }
+  private def nextBlock: Unit = {
+    if (blocks.size() == 0) {
+      eof = true
+    } else if (this.currentBlock == null) {
+      currentBlock = blocks.firstKey()
+    } else {
+      val next = blocks.get(this.currentBlock)
+      blocks.remove(this.currentBlock)
+      if (next == null) {
+        currentBlock = null
+        nextBlock
+      } else {
+        this.currentBlock = next
       }
+    }
 
   }
 }

@@ -45,7 +45,7 @@ object Path {
   }
 
   def isValid(filePath: String): Boolean = {
-    PATH_REG_EXP.r.findFirstIn(filePath) != None
+    PATH_REG_EXP.r.findFirstIn(filePath).isDefined
   }
 
   class InternalPath(val path: String, val name: String, val parent: String) extends IPath {
